@@ -4,12 +4,7 @@ const express = require('express');
 const app = express();
 
 app.use(function(req, res, next){
-    console.log('First piece of middleware!');
-    next();
-});
-
-app.use(function(req, res, next){
-    console.log('Second piece of middleware!');
+    console.log('The leaves on the trees are', req.query.color);
     next();
 });
 
