@@ -1,10 +1,12 @@
 'use strict'
-
 const express = require('express');
 const app = express();
-const jsonParser = require('body-parser').json;
 const routes = require('./routes');
 
+const jsonParser = require('body-parser').json;
+const logger = require('morgan');
+
+app.use(logger("dev"));
 app.use(jsonParser());
 
 app.use('/questions', routes);
