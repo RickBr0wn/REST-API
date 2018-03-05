@@ -34,20 +34,29 @@ db.once("open", function () {
 		}
 	});
 
-	AnimalSchema.pre("save", function(next){
-		if(this.mass >= 100){
+	AnimalSchema.pre("save", function (next) {
+		if (this.mass >= 100) {
 			this.size = "big";
-		}else if(this.mass >= 5 && this.mass < 100){
+		} else if (this.mass >= 5 && this.mass < 100) {
 			this.size = "medium";
-		}else{
+		} else {
 			this.size = "small";
 		}
 		next();
 	});
 
-	AnimalSchema.statics.findSize = function(size, callback){
+	AnimalSchema.methods.findSameColor = function (callback) {
+		// this == document
+		return this.model("Animal").find({
+			color: this.color
+		}, callback);
+	}
+
+	AnimalSchema.statics.findSize = function (size, callback) {
 		// this == Animal
-		return this.find({ size: size }, callback);
+		return this.find({
+			size: size
+		}, callback);
 	}
 
 	var Animal = mongoose.model("Animal", AnimalSchema);
@@ -65,9 +74,8 @@ db.once("open", function () {
 		mass: 190500,
 		name: "Biggie"
 	});
-	
-	var animalData = [
-		{
+
+	var animalData = [{
 			type: "mouse",
 			color: "grey",
 			mass: 0.035,
@@ -90,16 +98,21 @@ db.once("open", function () {
 		whale
 	];
 
-	Animal.remove({}, function(err){
-		if(err) console.error(err);
-		Animal.create(animalData, function(err, animals){
-			if(err) console.error(err);
-			Animal.findSize("medium", function(err, animals){
-				animals.forEach(function(animal){
-					console.log(animal.name + " the " + animal.color + " " +  animal.type + " is a " + animal.size + "-sized animal");
-				});
-				db.close(function(){
-					console.log("DB CONNECTION CLOSED");
+	Animal.remove({}, function (err) {
+		if (err) console.error(err);
+		Animal.create(animalData, function (err, animals) {
+			if (err) console.error(err);
+			Animal.findOne({
+				type: "elephant"
+			}, function (err, elephant) {
+				elephant.findSameColor(function (err, animals) {
+					if (err) console.error(err);
+					animals.forEach(function (animal) {
+						console.log(animal.name + " the " + animal.color + " " + animal.type + " is a " + animal.size + "-sized animal");
+					});
+					db.close(function () {
+						console.log("DB CONNECTION CLOSED");
+					});
 				});
 			});
 		});
