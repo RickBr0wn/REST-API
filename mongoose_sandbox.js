@@ -6,11 +6,11 @@ mongoose.connect("mongodb://localhost:27017/sandbox");
 var db = mongoose.connection;
 
 db.on("error", function (error) {
-	console.log("connection error:", err);
+	console.log("CONNECTION ERROR:", err);
 });
 
 db.once("open", function () {
-	console.log("database connection successful");
+	console.log("DB CONNECTION SUCCESSFUL!");
 	// all database communication goes here
 
 	var Schema = mongoose.Schema;
@@ -19,11 +19,8 @@ db.once("open", function () {
 			type: String,
 			default: "goldfish"
 		},
+		size: String,
 		color: {
-			type: String,
-			default: "small"
-		},
-		size: {
 			type: String,
 			default: "golden"
 		},
@@ -37,11 +34,26 @@ db.once("open", function () {
 		}
 	});
 
+	AnimalSchema.pre("save", function(next){
+		if(this.mass >= 100){
+			this.size = "big";
+		}else if(this.mass >= 5 && this.mass < 100){
+			this.size = "medium";
+		}else{
+			this.size = "small";
+		}
+		next();
+	});
+
+	AnimalSchema.statics.findSize = function(size, callback){
+		// this == Animal
+		return this.find({ size: size }, callback);
+	}
+
 	var Animal = mongoose.model("Animal", AnimalSchema);
 
 	var elephant = new Animal({
 		type: "elephant",
-		size: "big",
 		color: "grey",
 		mass: 6000,
 		name: "Lawerence"
@@ -50,40 +62,44 @@ db.once("open", function () {
 	var animal = new Animal({}); // goldfish
 	var whale = new Animal({
 		type: "whale",
-		size: "big",
 		mass: 190500,
-		name: "biggie"
+		name: "Biggie"
 	});
+	
+	var animalData = [
+		{
+			type: "mouse",
+			color: "grey",
+			mass: 0.035,
+			name: "Marvin"
+		},
+		{
+			type: "Nutria",
+			color: "brown",
+			mass: 6.35,
+			name: "Gretchin"
+		},
+		{
+			type: "wolf",
+			color: "grey",
+			mass: 45,
+			name: "Wolfenstein"
+		},
+		elephant,
+		animal,
+		whale
+	];
 
-	Animal.remove({}, () => {
-		elephant.save((err) => {
-			if (err) {
-				console.error('save failed', err);
-			} else {
-				console.log("saved!");
-			}
-			animal.save((err) => {
-				if (err) {
-					console.error('save failed', err);
-				} else {
-					console.log("saved!");
-				}
-				whale.save((err) => {
-					if (err) {
-						console.error('save failed', err);
-					} else {
-						console.log("saved!");
-					}
-					Animal.find({
-						"size": "big"
-					}, function (err, animals) {
-						animals.forEach(function (animal) {
-							console.log(animal.name + " the " + animal.color + " " + animal.type);
-						});
-						db.close(() => {
-							console.log("db connection closed");
-						});
-					});
+	Animal.remove({}, function(err){
+		if(err) console.error(err);
+		Animal.create(animalData, function(err, animals){
+			if(err) console.error(err);
+			Animal.findSize("medium", function(err, animals){
+				animals.forEach(function(animal){
+					console.log(animal.name + " the " + animal.color + " " +  animal.type + " is a " + animal.size + "-sized animal");
+				});
+				db.close(function(){
+					console.log("DB CONNECTION CLOSED");
 				});
 			});
 		});
