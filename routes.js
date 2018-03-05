@@ -1,10 +1,14 @@
 'use strict'
 const express = require('express');
 const router = express.Router();
+var Question = require('./models').Question;
 
 // GET /questions
 // Return all the questions
 router.get("/", function (req, res) {
+	Question.find({}, function(err, questions){
+		
+	});
 	res.json({
 		response: "You sent me a GET request"
 	});
